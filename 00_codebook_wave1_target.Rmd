@@ -53,13 +53,61 @@ si %>%
 
 ```{r load-data}
 # load scored data
-data <- readRDS(file = "../PSTEM_Wave_1_SCORED_2023-02-02.RData")
+data <- readRDS(file = "../PSTEM_Wave_1_SCORED_2023-02-21.RData")
 
 # load dictionary
 dict <- read.csv(file = "../PSTEM_Data-Dictionary_Wave_1_Target.csv")
 ```
 
-# II. STEM Scales
+# II. Demographics
+
+```{r demo}
+# age
+ggplot(data = data, aes(age)) +
+  geom_histogram(binwidth = 1, fill = "#710c0c") + 
+  geom_vline(xintercept = mean(data$age, na.rm = T),
+             color = "#f1c232", size = 1) +
+  annotate("text", 
+           label = paste0("Mean = ", round(mean(data$age, na.rm = T), 3),
+                          ", SD = ",round(sd(data$age, na.rm = T), 3)),
+           x = 25, y = 50) + 
+  labs(
+    title = "Distribution of Age",
+    x = "Age (in years)",
+    y = NULL
+  ) +
+  theme_classic()
+
+# gender
+ggplot(data[which(!is.na(data$gender_f)),], 
+       aes(factor(gender_f,
+                  levels = c("woman", "man"),
+                  labels = c("woman", "man")))) + 
+  geom_bar(fill = c("#f1c232", "#710c0c")) + 
+  geom_text(stat='count', aes(label=..count..), vjust = -1) + 
+  labs(
+    title = "Count of Gender",
+    x = NULL
+  ) +
+  ylim(0, 150) +
+  theme_classic()
+
+# race
+ggplot(data[which(!is.na(data$race_f)),], 
+       aes(factor(race_f,
+                  levels = c("asian", "black", "hispanic", "mixed"),
+                  labels = c("asian", "black", "hispanic", "mixed")))) + 
+  geom_bar(fill = "#710c0c") + 
+  geom_text(stat='count', aes(label=..count..), vjust = -1) + 
+  labs(
+    title = "Count of racial/ethnic groups",
+    x = NULL
+  ) +
+  ylim(0, 125) +
+  theme_classic()
+```
+
+# III. STEM Scales
 
 ## STEM Measures (Chemers et al., 2011)
 
@@ -169,7 +217,7 @@ plot(likert(stemidco_emi_items)) +
 ```
 
 
-# III. Identity and Wellbeing Scales
+# IV. Identity and Wellbeing Scales
 ## Utrecht Management of Identity Commitments - Education Domain (Crocetti et al., 2008) 
 
 ```{r umics, fig.width=11, fig.height = 5}
@@ -327,7 +375,7 @@ for(var in ss_variables){
 ```
 
 
-# IV. Personality Scales
+# V. Personality Scales
 ## Big Five Aspect Scale - Domain Level (DeYoung et al., 2007) 
 
 ```{r bfas-domain, fig.width=11, fig.height = 10}
@@ -409,7 +457,7 @@ for(var in pid_variables){
 ```
 
 
-# V. Cognitive Abilities and Interests Scales
+# VI. Cognitive Abilities and Interests Scales
 ## IQ-16
 
 ```{r iq, fig.width=11, fig.height = 20}
@@ -429,7 +477,7 @@ names(iq_items) <- var_label(iq_ori)
 iq_items <- iq_items %>%
   mutate_all(.funs = function(x){
     factor(x, levels = c(0,1),
-           labels = c("Correct", "Incorrect"))
+           labels = c("Incorrect", "Correct"))
   })
 plot(likert(iq_items)) + 
   theme(axis.text = element_text(size=12))

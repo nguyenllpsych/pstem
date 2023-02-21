@@ -12,6 +12,8 @@ library(dplyr)
 library(psych)
 library(labelled)
 library(codebook) #reverse scoring
+#devtools::install_github("ropenscilabs/gendercoder")
+library(gendercoder) #gender coding
 
 # data and dictionary
 dat <- readRDS("../PSTEM_Wave_1_WORKING_SCORED_2022-02-03.RData")
@@ -412,6 +414,36 @@ ss_r <- ss_r %>%
 dat <- cbind(dat, ss_r)
 
 # III. DEMOGRAPHICS ===============
+
+##> Gender
+# use gendercoder
+dat <- dat %>% 
+  mutate(gender_f = recode_gender(gender, dictionary = fewlevels_en, 
+                                  retain_unmatched = FALSE))
+
+# manually fix results
+dat[c(64, 68, 78, 86, 113, 171, 179), "gender_f"] <- "woman"
+dat[108, "gender_f"] <- "man"
+summary(as.factor(dat$gender_f))
+
+##> Race
+dat <- dat %>%
+  mutate(race_f = 
+           ifelse(grepl(pattern = "Caucasian from Middle East", x = race),
+                  NA,
+           ifelse(grepl(pattern = "mix|half|multi|bi|and |;|Asian, Caucasian", 
+                        x = race, ignore.case = TRUE),
+                  "mixed",
+           ifelse(grepl(pattern = "hispa|latin|mexic", x = race, ignore.case = TRUE),
+                  "hispanic",
+           ifelse(grepl(pattern = "asian|chinese|viet|indian|filip|afghan|hmong|Bengali|Korean|cambodian|Taiwanese", 
+                        x = race, ignore.case = TRUE),
+                  "asian",
+           ifelse(grepl(pattern = "black|africa|afro|kenyan|oromo|somali|ethio", 
+                        x = race, ignore.case = TRUE),
+                  "black",
+                  NA))))))
+summary(as.factor(dat$race_f))
 
 # IV. EXPORT ======================
 saveRDS(dat, file = paste0("../PSTEM_Wave_1_SCORED_", Sys.Date(), ".RData"))
