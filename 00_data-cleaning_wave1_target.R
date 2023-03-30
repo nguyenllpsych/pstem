@@ -447,4 +447,5 @@ summary(as.factor(dat$race_f))
 
 # IV. EXPORT ======================
 saveRDS(dat, file = paste0("../PSTEM_Wave_1_SCORED_", Sys.Date(), ".RData"))
-
+rio::export(dat, file = paste0("../PSTEM_Wave_1_SCORED_", Sys.Date(), ".csv"))
+rio::export(dat, file = paste0("../PSTEM_Wave_1_SCORED_", Sys.Date(), ".sav"))

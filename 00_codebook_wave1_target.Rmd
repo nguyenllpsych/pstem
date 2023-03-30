@@ -10,8 +10,7 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, 
-                      cache = TRUE)
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 options(digits = 3)
 
 libraries <- c("rio",          # import export
@@ -30,7 +29,16 @@ This [codebook](https://rpubs.com/nguyenllpsych/pstem_target1) includes only qua
 
 - Major/Career Pathway Narrative
 - Twenty Statements Test (Kuhn & McPartland, 1954)
+- COVID impact on education
+- Excitement about future
 
+In addition, the following demographic data were collected but not shown here:
+
+- Sexual orientation (open ended)
+- Year in school (open ended)
+- Previous institution if transferred (open ended)
+- Major (open ended)
+- Potential major change (open ended)
 
 ```{r session-info, results = "hold"}
 # list of loaded packages and versions
@@ -60,6 +68,8 @@ dict <- read.csv(file = "../PSTEM_Data-Dictionary_Wave_1_Target.csv")
 ```
 
 # II. Demographics
+
+There are a total of `r nrow(data)` participants in wave 2, and `r data %>% select(-one_of(c("gender_f","race_f"))) %>% complete.cases() %>% sum()` participants with non-missing data.
 
 ```{r demo}
 # age
@@ -105,6 +115,156 @@ ggplot(data[which(!is.na(data$race_f)),],
   ) +
   ylim(0, 125) +
   theme_classic()
+
+# social class
+ggplot(data[which(!is.na(data$socialclass)),], 
+       aes(factor(socialclass,
+                  levels = c(1,2,3,4,5),
+                  labels = c("Low-income/poor", "Working class/Lower middle class",
+                             "Middle class", "Upper middle class",
+                             "Upper class")))) + 
+  geom_bar(fill = "#710c0c") + 
+  geom_text(stat='count', aes(label=..count..), vjust = -1) + 
+  labs(
+    title = "Count of social class background",
+    x = NULL
+  ) +
+  ylim(0, 100) +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 15, vjust = 0.5))
+
+# transfer
+ggplot(data[which(!is.na(data$transfer)),], 
+       aes(factor(transfer,
+                  levels = c(1,2),
+                  labels = c("No","Yes")))) + 
+  geom_bar(fill = c("#f1c232", "#710c0c")) + 
+  geom_text(stat='count', aes(label=..count..), vjust = -1) + 
+  labs(
+    title = "Count of transfer students",
+    x = NULL
+  ) +
+  ylim(0, 175) +
+  theme_classic()
+
+# intl
+ggplot(data[which(!is.na(data$intl)),], 
+       aes(factor(intl,
+                  levels = c(1,2),
+                  labels = c("No","Yes")))) + 
+  geom_bar(fill = c("#f1c232", "#710c0c")) + 
+  geom_text(stat='count', aes(label=..count..), vjust = -1) + 
+  labs(
+    title = "Count of international students",
+    x = NULL
+  ) +
+  ylim(0, 200) +
+  theme_classic()
+
+# usborn
+ggplot(data[which(!is.na(data$usborn)),], 
+       aes(factor(usborn,
+                  levels = c(1,2),
+                  labels = c("No","Yes")))) + 
+  geom_bar(fill = c("#f1c232", "#710c0c")) + 
+  geom_text(stat='count', aes(label=..count..), vjust = -1) + 
+  labs(
+    title = "Count of US-born students",
+    x = NULL
+  ) +
+  ylim(0, 175) +
+  theme_classic()
+
+# usborn_p
+ggplot(data[which(!is.na(data$usborn_p)),], 
+       aes(factor(usborn_p,
+                  levels = c(1,2,3),
+                  labels = c("Neither parent","One parent","Both parents")))) + 
+  geom_bar(fill = c("#f1c232","#710c0c","#710c0c")) + 
+  geom_text(stat='count', aes(label=..count..), vjust = -1) + 
+  labs(
+    title = "Count of US-born parents",
+    x = NULL
+  ) +
+  ylim(0, 175) +
+  theme_classic()
+
+# liveus
+ggplot(data[which(!is.na(data$liveus)),], 
+       aes(factor(liveus,
+                  levels = c(1,2),
+                  labels = c("No","Yes")))) + 
+  geom_bar(fill = c("#f1c232","#710c0c")) + 
+  geom_text(stat='count', aes(label=..count..), vjust = -1) + 
+  labs(
+    title = "Count of US-based students",
+    x = NULL
+  ) +
+  ylim(0, 225) +
+  theme_classic()
+
+# politics
+ggplot(data[which(!is.na(data$politics)),], 
+       aes(factor(politics,
+                  levels = c(1:7),
+                  labels = names(val_labels(data$politics))))) + 
+  geom_bar(fill = c("#710c0c")) + 
+  geom_text(stat='count', aes(label=..count..), vjust = -1) + 
+  labs(
+    title = "Count of political views",
+    x = NULL
+  ) +
+  ylim(0, 90) +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 15, vjust = 0.5))
+
+# religion
+ggplot(data[which(!is.na(data$religion)),], 
+       aes(factor(religion,
+                  levels = c(1:4),
+                  labels = names(val_labels(data$religion))))) + 
+  geom_bar(fill = c("#710c0c")) + 
+  geom_text(stat='count', aes(label=..count..), vjust = -1) + 
+  labs(
+    title = "Count of religious views",
+    x = NULL
+  ) +
+  ylim(0, 80) +
+  theme_classic()
+
+# covid_1
+ggplot(data = data, aes(covid_1)) +
+  geom_histogram(binwidth = 1, fill = "#710c0c") + 
+  geom_vline(xintercept = mean(data$covid_1, na.rm = T),
+             color = "#f1c232", size = 1) +
+  annotate("text", 
+           label = paste0("Mean = ", round(mean(data$covid_1, na.rm = T), 3),
+                          ", SD = ",round(sd(data$covid_1, na.rm = T), 3)),
+           x = 1, y = 25) + 
+  labs(
+    title = "Distribution of COVID stress",
+    x = "COVID stress (0-10 scale)",
+    y = NULL
+  ) +
+  theme_classic()
+```
+
+```{r english, fig.width=11, fig.height = 7}
+# english comfort
+english <- dict %>%
+  filter(grepl(pattern = "english", x = variable)) %>%
+  pull(variable)
+english <- data %>%
+  select(all_of(english)) 
+names(english) <- var_label(english)
+english <- english %>%
+  mutate_all(.funs = function(x){
+    factor(x, levels = c(1:4),
+           labels = c("Beginning","Intermediate","Proficient","Advanced"))
+  })
+plot(likert(english)) + 
+  theme(axis.text = element_text(size=12)) +
+  labs(title = "English proficiency")
 ```
 
 # III. STEM Scales
