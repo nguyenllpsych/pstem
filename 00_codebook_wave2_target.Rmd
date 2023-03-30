@@ -1,0 +1,484 @@
+---
+title: "P-STEM Wave 2 Target Codebook"
+author: "Linh Nguyen"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    toc: true
+    toc_depth: 4
+    code_folding: 'hide'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+options(digits = 3)
+
+libraries <- c("rio",          # import export
+               "ggplot2",      # plots
+               "dplyr",        # general wrangling
+               "likert",       # likert plot
+               "kableExtra",   # session info
+               "labelled")     # value labels
+
+lapply(libraries, require, character.only = TRUE)
+```
+
+# I. Meta Data
+
+This [codebook](https://rpubs.com/nguyenllpsych/pstem_target2) includes only quantitative scales. Qualitative responses collected for the following scales are not included here:
+
+- Major/Career Pathway Narrative
+- Deviation Narrative
+- Pride Narrative
+- Twenty Statements Test (Kuhn & McPartland, 1954)
+
+In addition, the following demographic data were collected but not shown here:
+
+- Sexual orientation (open ended)
+- Major (open ended)
+- Potential major change (open ended)
+
+```{r session-info, results = "hold"}
+# list of loaded packages and versions
+si <- devtools::session_info()[[2]]
+rownames(si) <- NULL
+si %>% 
+  select(package, loadedversion, date, source) %>% 
+  
+  #red bold the called packages
+  mutate(package = 
+           cell_spec(package, 
+                     color = ifelse(package %in% libraries, "red", "black"),
+                     bold = ifelse(package %in% libraries, TRUE, FALSE))) %>% 
+  knitr::kable(escape = F, caption = "All loaded packages. 
+               Bolded in red are those loaded explicitly with 
+               <code>library()</code>") %>% 
+  kable_styling() %>% 
+  scroll_box(height = "300px")
+```
+
+```{r load-data}
+# load scored data
+data <- readRDS(file = "../PSTEM_Wave_2_SCORED_2023-03-29.RData")
+
+# load dictionary
+dict <- read.csv(file = "../PSTEM_Data-Dictionary_Wave_2_Target.csv")
+```
+
+# II. Demographics
+
+There are a total of `r nrow(data)` participants in wave 2, and `r data %>% select(-one_of(c("gender_f","race_f"))) %>% complete.cases() %>% sum()` participants with non-missing data.
+
+```{r demo}
+# gender
+ggplot(data[which(!is.na(data$gender_f)),], 
+       aes(factor(gender_f,
+                  levels = c("woman", "man"),
+                  labels = c("woman", "man")))) + 
+  geom_bar(fill = c("#f1c232", "#710c0c")) + 
+  geom_text(stat='count', aes(label=..count..), vjust = -1) + 
+  labs(
+    title = "Count of Gender",
+    x = NULL
+  ) +
+  ylim(0, 150) +
+  theme_classic()
+
+# race
+ggplot(data[which(!is.na(data$race_f)),], 
+       aes(factor(race_f,
+                  levels = c("asian", "black", "hispanic", "mixed"),
+                  labels = c("asian", "black", "hispanic", "mixed")))) + 
+  geom_bar(fill = "#710c0c") + 
+  geom_text(stat='count', aes(label=..count..), vjust = -1) + 
+  labs(
+    title = "Count of racial/ethnic groups",
+    x = NULL
+  ) +
+  ylim(0, 125) +
+  theme_classic()
+```
+
+# III. STEM Scales
+
+## STEM Measures (Chemers et al., 2011)
+
+```{r stem, fig.width=11, fig.height = 7}
+# stem-se
+stemse_items <- dict %>%
+  filter(grepl(pattern = "stemse", x = variable)) %>%
+  pull(variable)
+stemse_items <- data %>%
+  select(all_of(stemse_items)) 
+names(stemse_items) <- var_label(stemse_items)
+stemse_items <- stemse_items %>%
+  mutate_all(.funs = function(x){
+    factor(x, levels = c(1:5),
+           labels = c("Not at all confident", "To a small extent", 
+                      "To some extent", "To a large extent", 
+                      "Absolutely confident"))
+  })
+plot(likert(stemse_items)) + 
+  theme(axis.text = element_text(size=12)) +
+  labs(title = "STEM Self-Efficacy")
+
+# stemment-sm
+stemment_sm_items <- c("stemment_1","stemment_2","stemment_3","stemment_4",
+                       "stemment_5","stemment_6","stemment_7")
+stemment_sm_items <- data %>%
+  select(all_of(stemment_sm_items)) 
+names(stemment_sm_items) <- var_label(stemment_sm_items)
+stemment_sm_items <- stemment_sm_items %>%
+  mutate_all(.funs = function(x){
+    factor(x, levels = c(1:5),
+           labels = c("Not at all", "To a small extent", 
+                      "To some extent", "To a large extent", 
+                      "To a very large extent"))
+  })
+plot(likert(stemment_sm_items)) + 
+  theme(axis.text = element_text(size=12)) +
+  labs(title = "STEM Socioemotional Mentoring")
+
+# stemment-im
+stemment_im_items <- c("stemment_8","stemment_9","stemment_10",
+                       "stemment_11","stemment_12","stemment_13")
+stemment_im_items <- data %>%
+  select(all_of(stemment_im_items)) 
+names(stemment_im_items) <- var_label(stemment_im_items)
+stemment_im_items <- stemment_im_items %>%
+  mutate_all(.funs = function(x){
+    factor(x, levels = c(1:5),
+           labels = c("Not at all", "To a small extent", 
+                      "To some extent", "To a large extent", 
+                      "To a very large extent"))
+  })
+plot(likert(stemment_im_items)) + 
+  theme(axis.text = element_text(size=12)) +
+  labs(title = "STEM Instrumental Mentoring")
+
+# stemidco-id
+stemidco_id_items <- c("stemidco_1","stemidco_2","stemidco_3",
+                       "stemidco_4","stemidco_5","stemidco_6")
+stemidco_id_items <- data %>%
+  select(all_of(stemidco_id_items)) 
+names(stemidco_id_items) <- var_label(stemidco_id_items)
+stemidco_id_items <- stemidco_id_items %>%
+  mutate_all(.funs = function(x){
+    factor(x, levels = c(1:5),
+           labels = c("Strongly Disagree", "Somewhat Disagree", 
+                      "Neutral", "Somewhat Agree", "Strongly Agree"))
+  })
+plot(likert(stemidco_id_items)) + 
+  theme(axis.text = element_text(size=12)) +
+  labs(title = "STEM Identity as a Scientist")
+
+# stemidco-co
+stemidco_co_items <- c("stemidco_9","stemidco_10","stemidco_11",
+                       "stemidco_12","stemidco_13","stemidco_14","stemidco_15")
+stemidco_co_items <- data %>%
+  select(all_of(stemidco_co_items)) 
+names(stemidco_co_items) <- var_label(stemidco_co_items)
+stemidco_co_items <- stemidco_co_items %>%
+  mutate_all(.funs = function(x){
+    factor(x, levels = c(1:5),
+           labels = c("Strongly Disagree", "Somewhat Disagree", 
+                      "Neutral", "Somewhat Agree", "Strongly Agree"))
+  })
+plot(likert(stemidco_co_items)) + 
+  theme(axis.text = element_text(size=12)) +
+  labs(title = "STEM Commitment to a Science Career")
+```
+
+## STEM Identity Integration (Walker & Syed, 2012)
+
+```{r stemidco-emi, fig.width=11, fig.height = 7}
+# items
+stemidco_emi_items <- c("stemidco_7","stemidco_8")
+stemidco_emi_items <- data %>%
+  select(all_of(stemidco_emi_items)) 
+names(stemidco_emi_items) <- var_label(stemidco_emi_items)
+stemidco_emi_items <- stemidco_emi_items %>%
+  mutate_all(.funs = function(x){
+    factor(x, levels = c(1:5),
+           labels = c("Strongly Disagree", "Somewhat Disagree", 
+                      "Neutral", "Somewhat Agree", "Strongly Agree"))
+  })
+plot(likert(stemidco_emi_items)) + 
+  theme(axis.text = element_text(size=12)) +
+  labs(title = "STEM Ethnicity-Major Integration")
+```
+
+
+# IV. Identity and Wellbeing Scales
+## Utrecht Management of Identity Commitments - Education Domain (Crocetti et al., 2008) 
+
+```{r umics, fig.width=11, fig.height = 5}
+# items
+umics_variables <- c("education commitment", "education in-depth exploration", 
+                     "education reconsideration of commitment")
+for(var in umics_variables){
+  items <- dict %>% 
+    filter(scale == var) %>% 
+    pull(variable)
+  items <- data %>%
+    select(all_of(items)) 
+  names(items) <- var_label(items)
+  items <- items %>%
+  mutate_all(.funs = function(x){
+    factor(x, levels = c(1:5),
+           labels = c("Strongly Disagree", "Somewhat Disagree", 
+                      "Neutral", "Somewhat Agree", "Strongly Agree"))
+  })
+  print(plot(likert(items),
+       main = var) + 
+    theme(axis.text = element_text(size=12)) +
+    labs(title = var))
+}
+```
+
+## Eriksonian Psychosocial Stage Inventory - Identity Subscale (Rosenthal et al., 1981)
+
+```{r epsi, fig.width=11}
+# epsi coherence
+epsi_coh_items <- c("epsi_2","epsi_4","epsi_5","epsi_6","epsi_8","epsi_9")
+epsi_coh_items <- data %>%
+  select(all_of(epsi_coh_items)) 
+names(epsi_coh_items) <- var_label(epsi_coh_items)
+epsi_coh_items <- epsi_coh_items %>%
+  mutate_all(.funs = function(x){
+    factor(x, levels = c(1:5),
+           labels = c("Strongly Disagree", "Somewhat Disagree", 
+                      "Neutral", "Somewhat Agree", "Strongly Agree"))
+  })
+plot(likert(epsi_coh_items)) + 
+  theme(axis.text = element_text(size=12)) +
+  labs(title = "Identity Coherence")
+
+# epsi confusion
+epsi_con_items <- c("epsi_1","epsi_3","epsi_7","epsi_10","epsi_11","epsi_12")
+epsi_con_items <- data %>%
+  select(all_of(epsi_con_items)) 
+names(epsi_con_items) <- var_label(epsi_con_items)
+epsi_con_items <- epsi_con_items %>%
+  mutate_all(.funs = function(x){
+    factor(x, levels = c(1:5),
+           labels = c("Strongly Disagree", "Somewhat Disagree", 
+                      "Neutral", "Somewhat Agree", "Strongly Agree"))
+  })
+plot(likert(epsi_con_items)) + 
+  theme(axis.text = element_text(size=12)) +
+  labs(title = "Identity Confusion")
+```
+
+## Multigroup Ethnic Identity Measure (Roberts et al., 1999) 
+
+```{r meim, fig.width=11}
+# meim exploration
+meim_ex_items <- c("meim_1", "meim_2", "meim_4", "meim_8", "meim_10")
+meim_ex_items <- data %>%
+  select(all_of(meim_ex_items)) 
+names(meim_ex_items) <- var_label(meim_ex_items)
+meim_ex_items <- meim_ex_items %>%
+  mutate_all(.funs = function(x){
+    factor(x, levels = c(1:5),
+           labels = c("Strongly Disagree", "Somewhat Disagree", 
+                      "Neutral", "Somewhat Agree", "Strongly Agree"))
+  })
+plot(likert(meim_ex_items)) + 
+  theme(axis.text = element_text(size=12)) +
+  labs(title = "Ethnic Identity Exploration")
+
+# meim commitment
+meim_co_items <- c("meim_3", "meim_5", "meim_6", "meim_7", 
+                   "meim_9", "meim_11", "meim_12")
+meim_co_items <- data %>%
+  select(all_of(meim_co_items)) 
+names(meim_co_items) <- var_label(meim_co_items)
+meim_co_items <- meim_co_items %>%
+  mutate_all(.funs = function(x){
+    factor(x, levels = c(1:5),
+           labels = c("Strongly Disagree", "Somewhat Disagree", 
+                      "Neutral", "Somewhat Agree", "Strongly Agree"))
+  })
+plot(likert(meim_co_items)) + 
+  theme(axis.text = element_text(size=12)) +
+  labs(title = "Ethnic Identity Commitment")
+```
+
+## Satisfaction with Life (Diener et al., 1985)
+
+```{r swls, fig.width=11}
+swls_items <- c("swls_1","swls_2","swls_3","swls_4","swls_5")
+swls_items <- data %>%
+  select(all_of(swls_items)) 
+names(swls_items) <- var_label(swls_items)
+swls_items <- swls_items %>%
+  mutate_all(.funs = function(x){
+    factor(x, levels = c(1:7),
+           labels = c("Strongly Disagree", "Disagree", "Slightly Disagree",
+                      "Neither Agree nor Disagree", "Slightly Agree",
+                      "Agree", "Strongly Agree"))
+  })
+plot(likert(swls_items)) + 
+  theme(axis.text = element_text(size=12)) +
+  labs(title = "Satisfaction with Life")
+```
+
+## Self-concept clarity (Campbell et al. 1996) 
+
+```{r scc, fig.width=11, fig.height=15}
+ssc_items <- c("ssc_1", "ssc_2", "ssc_3", "ssc_4", "ssc_5", "ssc_6", 
+                "ssc_7", "ssc_8", "ssc_9", "ssc_10", "ssc_11", "ssc_12")
+ssc_items <- data %>%
+  select(all_of(ssc_items)) 
+names(ssc_items) <- var_label(ssc_items)
+ssc_items <- ssc_items %>%
+  mutate_all(.funs = function(x){
+    factor(x, levels = c(1:5),
+           labels = c("Strongly Disagree", "Somewhat Disagree", 
+                      "Neutral", "Somewhat Agree", "Strongly Agree"))
+  })
+plot(likert(ssc_items)) + 
+  theme(axis.text = element_text(size=12))
+```
+
+## Social Support from Family and Friends (Procidano & Heller, 1983) 
+
+```{r ss, fig.width=11, fig.height = 15}
+ss_variables <- c("social support from friends", "social support from family")
+for(var in ss_variables){
+  items <- dict %>% 
+    filter(scale == var) %>% 
+    pull(variable)
+  items <- data %>%
+    select(all_of(items)) 
+  names(items) <- var_label(items)
+  items <- items %>%
+  mutate_all(.funs = function(x){
+    factor(x, levels = c(1:5),
+           labels = c("Strongly Disagree", "Somewhat Disagree", 
+                      "Neutral", "Somewhat Agree", "Strongly Agree"))
+  })
+  print(plot(likert(items),
+       main = var) + 
+    theme(axis.text = element_text(size=12)) +
+    labs(title = var))
+}
+```
+
+
+# V. Personality Scales
+## The Personality Inventory for DSM-5—Brief Form (Krueger et al., 2013)
+
+```{r pidv, fig.width=11}
+pid_variables <- c("disinhibition", "detachment", "psychoticism", 
+                   "negative", "antagonism")
+for(var in pid_variables){
+  items <- dict %>% 
+    filter(scale == var) %>% 
+    pull(variable)
+  items <- data %>%
+    select(all_of(items)) 
+  names(items) <- var_label(items)
+  items <- items %>%
+  mutate_all(.funs = function(x){
+    factor(x, levels = c(1:4),
+           labels = c("Very False or Often False", "Sometimes or Somewhat False", 
+                      "Sometimes or Somewhat True", "Very True or Often True"))
+  })
+  print(plot(likert(items),
+       main = var) + 
+    theme(axis.text = element_text(size=12)) +
+    labs(title = paste0("PID-5 Variable: ", var)))
+}
+```
+
+
+# VI. Cognitive Abilities and Interests Scales
+## Scientific Reasoning Task (Drummond & Fischhoff, 2017)
+
+```{r srt, fig.width=11, fig.height = 23}
+# items
+srs_items <- c("srs_1_scored", "srs_2_scored", "srs_3_scored", "srs_4_scored", 
+               "srs_5_scored", "srs_6_scored", "srs_7_scored", "srs_8_scored", 
+               "srs_9_scored", "srs_10_scored", "srs_11_scored")
+srs_items <- data %>%
+  select(all_of(srs_items)) 
+srs_ori <- c("srs_1", "srs_2", "srs_3", "srs_4", 
+             "srs_5", "srs_6", "srs_7", "srs_8", 
+             "srs_9", "srs_10", "srs_11")
+srs_ori <- data %>%
+  select(all_of(srs_ori)) 
+names(srs_items) <- var_label(srs_ori)
+srs_items <- srs_items %>%
+  mutate_all(.funs = function(x){
+    factor(x, levels = c(0,1),
+           labels = c("Incorrect", "Correct"))
+  })
+plot(likert(srs_items)) + 
+  theme(axis.text = element_text(size=12))
+```
+
+## Locus of Control (Cote, 1997)
+
+```{r loc, fig.width=11, fig.height = 7}
+# items
+loc_int_items <- dict %>% 
+        filter(scale == "internal") %>% 
+        pull(variable)
+loc_int_items <- data %>%
+  select(all_of(loc_int_items)) 
+names(loc_int_items) <- var_label(loc_int_items)
+loc_int_items <- loc_int_items %>%
+  mutate_all(.funs = function(x){
+    factor(x, levels = c(1:5),
+           labels = c("Strongly Disagree", "Somewhat Disagree", 
+                      "Neutral", "Somewhat Agree", "Strongly Agree"))
+  })
+plot(likert(loc_int_items)) + 
+  theme(axis.text = element_text(size=12)) + 
+  labs(title = "Internal Locus of Control")
+```
+
+## Educational Public Regard
+
+```{r epr, fig.width=11, fig.height = 7}
+# items
+epr_items <- dict %>% 
+        filter(scale == "public regard") %>% 
+        pull(variable)
+epr_items <- data %>%
+  select(all_of(epr_items)) 
+names(epr_items) <- var_label(epr_items)
+epr_items <- epr_items %>%
+  mutate_all(.funs = function(x){
+    factor(x, levels = c(1:5),
+           labels = c("Strongly Disagree", "Somewhat Disagree", 
+                      "Neutral", "Somewhat Agree", "Strongly Agree"))
+  })
+plot(likert(epr_items)) + 
+  theme(axis.text = element_text(size=12)) +
+  labs(title = "Educational Public Regard")
+```
+
+## Theory of Intelligence (Dweck, 2000)
+
+```{r toi, fig.width=11, fig.height = 7}
+# items
+toi_items <- dict %>% 
+        filter(scale == "growth") %>% 
+        pull(variable)
+toi_items <- data %>%
+  select(all_of(toi_items)) 
+names(toi_items) <- var_label(toi_items)
+toi_items <- toi_items %>%
+  mutate_all(.funs = function(x){
+    factor(x, levels = c(1:5),
+           labels = c("Strongly Disagree", "Somewhat Disagree", 
+                      "Neutral", "Somewhat Agree", "Strongly Agree"))
+  })
+plot(likert(toi_items)) + 
+  theme(axis.text = element_text(size=12)) +
+  labs(title = "Growth Mindset")
+```
+
